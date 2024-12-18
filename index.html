@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boother - PLS Donate Booth Text Generator</title>
+    <link rel="icon" href="favicon.ico">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #111;
+            color: white;
+            padding-top: 10%;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header {
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            animation: fadeIn 1.5s ease-in-out;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 15px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        textarea {
+            width: 80%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+            background-color: #333;
+            color: white;
+            resize: none;
+            margin-bottom: 20px;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .controls {
+            margin-top: 20px;
+        }
+
+        .controls label {
+            display: block;
+            margin: 5px 0;
+        }
+
+        .controls select,
+        .controls input {
+            padding: 8px;
+            margin: 10px 0;
+        }
+
+        footer {
+            margin-top: 30px;
+            font-size: 0.8rem;
+        }
+
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            color: white;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1.5s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .booth-preview {
+            margin-top: 30px;
+            padding: 20px;
+            background: #4CAF50;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            margin: 30px auto;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .generated-text {
+            font-size: 1.5rem;
+            color: white;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .copy-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #008CBA;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .copy-button:hover {
+            background-color: #007B9A;
+        }
+
+        @media (max-width: 600px) {
+            textarea {
+                width: 90%;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .booth-preview {
+                padding: 15px;
+            }
+
+            .generated-text {
+                font-size: 1.2rem;
+            }
+        }
+
+        .snowflake {
+            position: absolute;
+            top: -10px;
+            color: white;
+            font-size: 20px;
+            user-select: none;
+            pointer-events: none;
+            animation: fall 5s linear infinite;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loadingScreen" class="loading-screen">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <div id="mainContent" class="hidden">
+        <header>
+            <h1>Boother - PLS Donate Booth Text Generator</h1>
+        </header>
+
+        <div class="generator-container">
+            <textarea id="boothText" placeholder="Enter your message for your booth here..." rows="5"></textarea>
+
+            <div class="controls">
+                <label for="fontSelect">Choose a Font:</label>
+                <select id="fontSelect">
+                    <option value="Montserrat">Montserrat</option>
+                    <option value="Arial">Arial</option>
+                    <option value="Verdana">Verdana</option>
+                    <option value="Georgia">Georgia</option>
+                </select>
+
+                <label for="colorPicker">Choose Text Color:</label>
+                <input type="color" id="colorPicker" value="#ffffff">
+
+                <button id="generateButton">Generate Text</button>
+            </div>
+
+            <h2>Your Generated Text:</h2>
+            
+            <div id="boothPreview" class="booth-preview">
+                <div id="generatedText" class="generated-text">Preview your text here.</div>
+            </div>
+
+            <!-- Copy Button -->
+            <button id="copyButton" class="copy-button">Copy HTML Markdown</button>
+        </div>
+
+        <footer>
+            <p>Boother - Created for PLS Donate Players</p>
+        </footer>
+    </div>
+
+    <script>
+        window.onload = function () {
+            document.getElementById("loadingScreen").style.display = "none";
+            document.getElementById("mainContent").classList.remove("hidden");
+            checkForSnowflakes();
+        };
+
+        function checkForSnowflakes() {
+            const currentDate = new Date();
+            if (currentDate.getMonth() === 11 && currentDate.getDate() === 1) {
+                startSnowflakes();
+            }
+        }
+
+        function startSnowflakes() {
+            setInterval(createSnowflake, 200);
+        }
+
+        function createSnowflake() {
+            const snowflake = document.createElement("div");
+            snowflake.classList.add("snowflake");
+            snowflake.textContent = "❄️";
+            snowflake.style.left = Math.random() * 100 + "vw";
+            document.body.appendChild(snowflake);
+
+            setTimeout(() => {
+                snowflake.remove();
+            }, 5000);
+        }
+
+        document.getElementById("generateButton").addEventListener("click", function() {
+            let boothText = document.getElementById("boothText").value;
+            let fontChoice = document.getElementById("fontSelect").value;
+            let textColor = document.getElementById("colorPicker").value;
+
+            if (boothText.trim() === "") {
+                alert("Please enter some text.");
+                return;
+            }
+
+            let generatedText = boothText + "\n\n" + "Thank you for donating! :)";
+
+            let previewArea = document.getElementById("generatedText");
+            previewArea.textContent = generatedText;
+            previewArea.style.fontFamily = fontChoice;
+            previewArea.style.color = textColor;
+
+            // Prepare the HTML markdown for copying
+            let markdownText = `<div style="font-family: ${fontChoice}; color: ${textColor};">${generatedText}</div>`;
+            document.getElementById("copyButton").setAttribute("data-markdown", markdownText);
+        });
+
+        document.getElementById("copyButton").addEventListener("click", function() {
+            const markdownText = this.getAttribute("data-markdown");
+
+            // Create a temporary textarea to copy the markdown text
+            const tempTextArea = document.createElement("textarea");
+            tempTextArea.value = markdownText;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempTextArea);
+
+            alert("HTML Markdown Copied!");
+        });
+    </script>
+
+</body>
+</html>
